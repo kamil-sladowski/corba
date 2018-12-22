@@ -39,22 +39,14 @@ class OptimizationImpl extends optimizationPOA implements optimizationOperations
         public void activate() {
             lastHello = System.currentTimeMillis();
         }
-
-
     }
 
-    class SingleServerIpComparator implements Comparator<SingleServer> {
-        @Override
-        public int compare(SingleServer o1, SingleServer o2) {
-            return o1.ip - o2.ip;
-        }
-    }
+
 
     static AtomicInteger idCount = new AtomicInteger(0);
 
     private ConcurrentHashMap<Integer, SingleServer> serversID = new ConcurrentHashMap<>();
     private ConcurrentHashMap<Short, SingleServer> serversIP = new ConcurrentHashMap<>();
-    private ConcurrentSkipListSet<SingleServer> servers = new ConcurrentSkipListSet<>(new SingleServerIpComparator());
 
     @Override
     public void register(short ip, int timeout, IntHolder id) {
@@ -63,7 +55,6 @@ class OptimizationImpl extends optimizationPOA implements optimizationOperations
             SingleServer newServer = new SingleServer(id.value, ip, timeout);
             serversIP.put(ip, newServer);
             serversID.put(id.value, newServer);
-            servers.add(newServer);
         } else {
             serversIP.get(ip).setTimeout(timeout);
             id.value = serversIP.get(ip).id;
@@ -80,7 +71,7 @@ class OptimizationImpl extends optimizationPOA implements optimizationOperations
     @Override
     public void best_range(rangeHolder r) {
         range bestRange = null, tmpRange = null;
-        for (SingleServer sItem : servers) {
+        for (SingleServer sItem : serversID.values()) {
             if(sItem.isActive()) {
                 if (tmpRange == null) {
                     tmpRange = new range(sItem.ip, sItem.ip);
