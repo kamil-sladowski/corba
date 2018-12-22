@@ -83,9 +83,7 @@ class OptimizationImpl extends optimizationPOA implements optimizationOperations
     @Override
     public void best_range(rangeHolder r) {
         range bestRange = null, tmpRange = null;
-        Iterator<SingleServer> it = servers.iterator();
-        while (it.hasNext()) {
-            SingleServer sItem = it.next();
+        while (sItem : servers) {
             if (tmpRange == null && sItem.isActive()) {
                 tmpRange = new range(sItem.ip, sItem.ip);
             } else if (tmpRange != null && sItem.isActive()) {
