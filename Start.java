@@ -120,13 +120,9 @@ class OptimizationImpl extends optimizationPOA implements optimizationOperations
         range bestRange = null, tmpRange = null;
         Iterator<SingleServer> it = servers.iterator();
         for (sItem : servers) {
-
-            if (tmpRange == null ) {
-                if (sItem.isActive()) {
-                    tmpRange = new range(sItem.ip, sItem.ip);
-
-            }
-             else if (sItem.isActive()) {
+            if (tmpRange == null && sItem.isActive()) {
+                tmpRange = new range(sItem.ip, sItem.ip);
+            } else if (tmpRange != null && sItem.isActive()) {
                 if (sItem.ip - 1 == tmpRange.to) {
                     tmpRange.to += 1;
                 } else {
@@ -135,7 +131,6 @@ class OptimizationImpl extends optimizationPOA implements optimizationOperations
             } else {
                 tmpRange = null;
             }
-
             if (bestRange == null || tmpRange != null && tmpRange.to - tmpRange.from > bestRange.to - bestRange.from) {
                 bestRange = tmpRange;
             }
