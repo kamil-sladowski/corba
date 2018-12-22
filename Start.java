@@ -27,18 +27,19 @@ class OptimizationImpl extends optimizationPOA implements optimizationOperations
 		}
 
 
-
 		public void setTimeout(int timeout) {
 			this.timeout = timeout;
-		}
-
-		public void hello() {
-			lastHello = System.currentTimeMillis();
 		}
 
 		public boolean isActive() {
 			return System.currentTimeMillis() - lastHello < timeout;
 		}
+
+		public void activate() {
+			lastHello = System.currentTimeMillis();
+		}
+
+
 	}
 
 	class SingleServerIpComparator implements Comparator<SingleServer> {
@@ -50,20 +51,20 @@ class OptimizationImpl extends optimizationPOA implements optimizationOperations
 
 	static AtomicInteger idCount = new AtomicInteger(0);
 
-	private ConcurrentHashMap<Integer, SingleServer> idServerMap = new ConcurrentHashMap<Integer, SingleServer>();
-	private ConcurrentHashMap<Short, SingleServer> ipServerMap = new ConcurrentHashMap<Short, SingleServer>();
+	private ConcurrentHashMap<Integer, SingleServer> idServerMap = new ConcurrentHashMap<>();
+	private ConcurrentHashMap<Short, SingleServer> ipServerMap = new ConcurrentHashMap<>();
 	private ConcurrentSkipListSet<SingleServer> servers = new ConcurrentSkipListSet<SingleServer>(new SingleServerIpComparator());
 
 	@Override
 	public void register(short ip, int timeout, IntHolder id) {
 		SingleServer serverItem = ipServerMap.get(ip);
 		if (serverItem != null) {
-			serverItem.setTimeout(timeout);
+			serverItem.setTimeout(timeout);// czy pottrzebne
 			id.value = serverItem.id;
 		} else {
 			id.value = idCount.getAndIncrement();
 			serverItem = new SingleServer(id.value, ip, timeout);
-			serverItem.hello();
+			serverItem.activate();
 			ipServerMap.put(ip, serverItem);
 			idServerMap.put(id.value, serverItem);
 			servers.add(serverItem);
@@ -74,7 +75,7 @@ class OptimizationImpl extends optimizationPOA implements optimizationOperations
 	public void hello(int id) {
 		SingleServer serverItem = idServerMap.get(id);
 		if (serverItem != null) {
-			serverItem.hello();
+			serverItem.activate();
 		}
 	}
 
@@ -127,5 +128,4 @@ class Start {
 		}
 
 	}
-
 }
