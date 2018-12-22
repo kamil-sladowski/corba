@@ -83,60 +83,64 @@ class OptimizationImpl extends optimizationPOA implements optimizationOperations
     @Override
     public void best_range(rangeHolder r) {
 
-        ArrayList<Short> tmpRange = new ArrayList<>();
-        ArrayList<Short> maxRange = new ArrayList<>();
-        for (SingleServer e: servers){
-            if(e.isActive()){
-                tmpRange.add(Short.valueOf(e.ip));
-            }
-            else{
-
-                addressRange.add(tmpRange);
-                tmpRange = new ArrayList<>();
-            }
-        }
-        int maxSize = 0;
-
-        for(ArrayList<Short> oneList: addressRange) {
-            if (maxSize < oneList.size()) {
-                maxSize = oneList.size();
-                maxRange = oneList;
-            }
-        }
-        if (maxRange.size() != 0) {
-
-            Short[] stockArr = new Short[maxRange.size()];
-            stockArr = maxRange.toArray(stockArr);
-            for (Short el: stockArr)
-                System.out.println("   -----    " + el);
-            System.out.println("   -stockArr[0]    " + stockArr[0]);
-            System.out.println("   -stockArr[stockArr.length-1]    " + stockArr[stockArr.length-1]);
-            range a = new range(stockArr[0], stockArr[stockArr.length-1]);
-            r.value = a;
-        }
-
-
-
-//        range bestRange = null, tmpRange = null;
-//        Iterator<SingleServer> it = servers.iterator();
-//        while (it.hasNext()) {
-//            SingleServer sItem = it.next();
-//            if (tmpRange == null && sItem.isActive()) {
-//                tmpRange = new range(sItem.ip, sItem.ip);
-//            } else if (tmpRange != null && sItem.isActive()) {
-//                if (sItem.ip - 1 == tmpRange.to) {
-//                    tmpRange.to += 1;
-//                } else {
-//                    tmpRange = new range(sItem.ip, sItem.ip);
-//                }
-//            } else {
-//                tmpRange = null;
+//        ArrayList<Short> tmpRange = new ArrayList<>();
+//        ArrayList<Short> maxRange = new ArrayList<>();
+//        for (SingleServer e: servers){
+//            if(e.isActive()){
+//                tmpRange.add(Short.valueOf(e.ip));
 //            }
-//            if (bestRange == null || tmpRange != null && tmpRange.to - tmpRange.from > bestRange.to - bestRange.from) {
-//                bestRange = tmpRange;
+//            else{
+//
+//                addressRange.add(tmpRange);
+//                tmpRange = new ArrayList<>();
 //            }
 //        }
-//        r.value = bestRange;
+//        int maxSize = 0;
+//
+//        for(ArrayList<Short> oneList: addressRange) {
+//            if (maxSize < oneList.size()) {
+//                maxSize = oneList.size();
+//                maxRange = oneList;
+//            }
+//        }
+//        if (maxRange.size() != 0) {
+//
+//            Short[] stockArr = new Short[maxRange.size()];
+//            stockArr = maxRange.toArray(stockArr);
+//            for (Short el: stockArr)
+//                System.out.println("   -----    " + el);
+//            System.out.println("   -stockArr[0]    " + stockArr[0]);
+//            System.out.println("   -stockArr[stockArr.length-1]    " + stockArr[stockArr.length-1]);
+//            range a = new range(stockArr[0], stockArr[stockArr.length-1]);
+//            r.value = a;
+//        }
+
+
+
+        range bestRange = null, tmpRange = null;
+        Iterator<SingleServer> it = servers.iterator();
+        for (sItem : servers) {
+
+            if (tmpRange == null ) {
+                if (sItem.isActive()) {
+                    tmpRange = new range(sItem.ip, sItem.ip);
+
+            }
+             else if (sItem.isActive()) {
+                if (sItem.ip - 1 == tmpRange.to) {
+                    tmpRange.to += 1;
+                } else {
+                    tmpRange = new range(sItem.ip, sItem.ip);
+                }
+            } else {
+                tmpRange = null;
+            }
+
+            if (bestRange == null || tmpRange != null && tmpRange.to - tmpRange.from > bestRange.to - bestRange.from) {
+                bestRange = tmpRange;
+            }
+        }
+        r.value = bestRange;
     }
 }
 
