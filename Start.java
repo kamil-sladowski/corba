@@ -14,7 +14,7 @@ import com.sun.corba.se.org.omg.CORBA.ORB;
 
 class OptimizationImpl extends optimizationPOA implements optimizationOperations {
 
-	class SingleServer {
+	class SingleServer implements Comparator<SingleServer>{
 		private short ip;
 		private int id;
 		private int timeout;
@@ -39,21 +39,19 @@ class OptimizationImpl extends optimizationPOA implements optimizationOperations
 			lastHello = System.currentTimeMillis();
 		}
 
-
-	}
-
-	class SingleServerIpComparator implements Comparator<SingleServer> {
 		@Override
 		public int compare(SingleServer o1, SingleServer o2) {
 			return o1.ip - o2.ip;
 		}
 	}
 
+
+
 	static AtomicInteger idCount = new AtomicInteger(0);
 
 	private ConcurrentHashMap<Integer, SingleServer> idServerMap = new ConcurrentHashMap<>();
 	private ConcurrentHashMap<Short, SingleServer> ipServerMap = new ConcurrentHashMap<>();
-	private ConcurrentSkipListSet<SingleServer> servers = new ConcurrentSkipListSet<SingleServer>(new SingleServerIpComparator());
+	private ConcurrentSkipListSet<SingleServer> servers = new ConcurrentSkipListSet<>();
 
 	@Override
 	public void register(short ip, int timeout, IntHolder id) {
