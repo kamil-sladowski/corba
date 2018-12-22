@@ -84,16 +84,18 @@ class OptimizationImpl extends optimizationPOA implements optimizationOperations
     public void best_range(rangeHolder r) {
         range bestRange = null, tmpRange = null;
         for (SingleServer sItem : servers) {
-            if (tmpRange == null && sItem.isActive()) {
-                tmpRange = new range(sItem.ip, sItem.ip);
-            } else if (tmpRange != null && sItem.isActive()) {
-                if (sItem.ip - 1 == tmpRange.to) {
-                    tmpRange.to += 1;
-                } else {
+            if(sItem.isActive()) {
+                if (tmpRange == null) {
                     tmpRange = new range(sItem.ip, sItem.ip);
+                } else if (tmpRange != null ) {
+                    if (sItem.ip - 1 == tmpRange.to) {
+                        tmpRange.to += 1;
+                    } else {
+                        tmpRange = new range(sItem.ip, sItem.ip);
+                    }
+                } else {
+                    tmpRange = null;
                 }
-            } else {
-                tmpRange = null;
             }
             if (bestRange == null || tmpRange != null && tmpRange.to - tmpRange.from > bestRange.to - bestRange.from) {
                 bestRange = tmpRange;
