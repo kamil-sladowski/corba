@@ -75,8 +75,9 @@ class OptimizationImpl extends optimizationPOA implements optimizationOperations
 
     @Override
     public void hello(int id) {
-        if (serversID.contains(id)) {
-            serversID.get(id).activate();
+        SingleServer s = serversID.get(id);
+        if (s != null) {
+            s.activate();
         }
     }
 
