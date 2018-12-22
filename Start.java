@@ -87,14 +87,12 @@ class OptimizationImpl extends optimizationPOA implements optimizationOperations
             if(sItem.isActive()) {
                 if (tmpRange == null) {
                     tmpRange = new range(sItem.ip, sItem.ip);
-                } else if (tmpRange != null ) {
+                } else {
                     if (sItem.ip - 1 == tmpRange.to) {
                         tmpRange.to += 1;
                     } else {
                         tmpRange = new range(sItem.ip, sItem.ip);
                     }
-                } else {
-                    tmpRange = null;
                 }
             }
             if (bestRange == null || tmpRange != null && tmpRange.to - tmpRange.from > bestRange.to - bestRange.from) {
