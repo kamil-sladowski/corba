@@ -58,18 +58,16 @@ class OptimizationImpl extends optimizationPOA implements optimizationOperations
     @Override
     public void register(short ip, int timeout, IntHolder id) {
 
-        SingleServer serverItem = serversIP.get(ip);
-
-        if (serverItem != null) {
-            serverItem.setTimeout(timeout);// czy pottrzebne
-            id.value = serverItem.id;
-        } else {
+        if (!serversIP.contains(ip)) {
             id.value = idCount.getAndIncrement();
-            serverItem = new SingleServer(id.value, ip, timeout);
-            serverItem.activate();
-            serversIP.put(ip, serverItem);
-            serversID.put(id.value, serverItem);
-            servers.add(serverItem);
+            SingleServer newServer = new SingleServer(id.value, ip, timeout);
+            newServer.activate();
+            serversIP.put(ip, newServer);
+            serversID.put(id.value, newServer);
+            servers.add(newServer);
+        } else {
+            serversIP.get(ip).setTimeout(timeout);// czy pottrzebne
+            id.value = serversIP.get(ip).id;
         }
     }
 
