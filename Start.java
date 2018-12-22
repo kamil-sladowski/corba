@@ -54,7 +54,7 @@ class OptimizationImpl extends optimizationPOA implements optimizationOperations
 
     private ConcurrentHashMap<Integer, SingleServer> serversID = new ConcurrentHashMap<>();
     private ConcurrentHashMap<Short, SingleServer> serversIP = new ConcurrentHashMap<>();
-    private ConcurrentSkipListSet<SingleServer> servers = new ConcurrentSkipListSet<SingleServer>(new SingleServerIpComparator());
+    private ConcurrentSkipListSet<SingleServer> servers = new ConcurrentSkipListSet<>(new SingleServerIpComparator());
 
     @Override
     public void register(short ip, int timeout, IntHolder id) {
@@ -66,31 +66,15 @@ class OptimizationImpl extends optimizationPOA implements optimizationOperations
             serversID.put(id.value, newServer);
             servers.add(newServer);
         } else {
-            serversIP.get(ip).setTimeout(timeout);// czy pottrzebne
+            serversIP.get(ip).setTimeout(timeout);
             id.value = serversIP.get(ip).id;
         }
-//
-//        SingleServer serverItem = serversIP.get(ip);
-//
-//        if (serverItem != null) {
-//            serverItem.setTimeout(timeout);// czy pottrzebne
-//            id.value = serverItem.id;
-//        } else {
-//            id.value = idCount.getAndIncrement();
-//            serverItem = new SingleServer(id.value, ip, timeout);
-//            serversIP.put(ip, serverItem);
-//            serversID.put(id.value, serverItem);
-//            servers.add(serverItem);
-//        }
-
-
     }
 
     @Override
     public void hello(int id) {
-        SingleServer s = serversID.get(id);
-        if (s != null) {
-            s.activate();
+        if (serversID.containsKey(id)) {
+            serversID.get(id).activate();
         }
     }
 
