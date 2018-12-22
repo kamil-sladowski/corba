@@ -1,65 +1,81 @@
-import java.util.*;
+import java.util.Comparator;
+import java.util.Iterator;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentSkipListSet;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import org.omg.CosNaming.*;
-import org.omg.CORBA.*;
-import org.omg.PortableServer.*;
+import org.omg.CORBA.IntHolder;
+import org.omg.CosNaming.NameComponent;
+import org.omg.CosNaming.NamingContext;
+import org.omg.CosNaming.NamingContextHelper;
+import org.omg.PortableServer.POA;
+
+import com.sun.corba.se.org.omg.CORBA.ORB;
 
 class OptimizationImpl extends optimizationPOA implements optimizationOperations {
 
-	class SingleServer implements Comparator<SingleServer>{
-		public Short ip;
-		public int timeout;
-		public IntHolder id;
-		private long timeFromLastHello;
+	class SingleServer {
+		private short ip;
+		private int id;
+		private int timeout;
+		private long lastHello;
 
-		public SingleServer(Short ip, int timeout, IntHolder id) {
+		public SingleServer(int id, short ip, int timeout) {
+			this.id = id;
 			this.ip = ip;
 			this.timeout = timeout;
-			this.timeFromLastHello = System.currentTimeMillis();
-			this.id = id;
 		}
 
+
+
+		public void setTimeout(int timeout) {
+			this.timeout = timeout;
+		}
+
+		public void hello() {
+			lastHello = System.currentTimeMillis();
+		}
 
 		public boolean isActive() {
-			return System.currentTimeMillis() - timeFromLastHello < timeout;
+			return System.currentTimeMillis() - lastHello < timeout;
 		}
-		public void activate() {
-			this.timeFromLastHello = System.currentTimeMillis();
-		}
+	}
 
+	class SingleServerIpComparator implements Comparator<SingleServer> {
 		@Override
 		public int compare(SingleServer o1, SingleServer o2) {
 			return o1.ip - o2.ip;
 		}
 	}
 
-	private ConcurrentHashMap<IntHolder, SingleServer> servers = new ConcurrentHashMap<>();
-	private List<ArrayList<Short>> addressRange = Collections.synchronizedList(new ArrayList<>()); //not used
+	static AtomicInteger idCount = new AtomicInteger(0);
 
+	private ConcurrentHashMap<Integer, SingleServer> idServerMap = new ConcurrentHashMap<Integer, SingleServer>();
+	private ConcurrentHashMap<Short, SingleServer> ipServerMap = new ConcurrentHashMap<Short, SingleServer>();
+	private ConcurrentSkipListSet<SingleServer> servers = new ConcurrentSkipListSet<SingleServer>(new SingleServerIpComparator());
 
 	@Override
 	public void register(short ip, int timeout, IntHolder id) {
-		if(servers!=null && id != null){
-			if (!servers.containsKey(id)){
-				id.value = ip;
-				servers.put(id, new SingleServer(ip, timeout, id));
-			}else{
-				if(servers.get(id) != null){
-					servers.get(id).activate();
-				}
-
-			}
+		SingleServer serverItem = ipServerMap.get(ip);
+		if (serverItem != null) {
+			serverItem.setTimeout(timeout);
+			id.value = serverItem.id;
+		} else {
+			id.value = idCount.getAndIncrement();
+			serverItem = new SingleServer(id.value, ip, timeout);
+			serverItem.hello();
+			ipServerMap.put(ip, serverItem);
+			idServerMap.put(id.value, serverItem);
+			servers.add(serverItem);
 		}
 	}
 
-
 	@Override
 	public void hello(int id) {
-		if (servers.contains(id))
-			servers.get(id).activate();
+		SingleServer serverItem = idServerMap.get(id);
+		if (serverItem != null) {
+			serverItem.hello();
+		}
 	}
 
 	@Override
