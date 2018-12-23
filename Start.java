@@ -1,6 +1,8 @@
+import java.util.Collection;
 import java.util.Comparator;
-import java.util.Iterator;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.concurrent.ConcurrentSkipListSet;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -42,32 +44,25 @@ class OptimizationImpl extends optimizationPOA implements optimizationOperations
 
         @Override
         public int compareTo(SingleServer o) {
-            Comparator<SingleServer> cmp = Comparator.comparingInt(p -> p.ip);
-            return cmp.compare(this, o);
+            return this.ip - o.ip;
         }
     }
 
-    class SingleServerIpComparator implements Comparator<SingleServer> {
-        @Override
-        public int compare(SingleServer o1, SingleServer o2) {
-            return o1.ip - o2.ip;
-        }
-    }
 
-    static AtomicInteger idCount = new AtomicInteger(0);
+    static AtomicInteger idCount = new AtomicInteger(0); // static??? synchronized???
 
-    private ConcurrentHashMap<Integer, SingleServer> serversID = new ConcurrentHashMap<>();
-    private ConcurrentHashMap<Short, SingleServer> serversIP = new ConcurrentHashMap<>();
-//    private ConcurrentSkipListSet<SingleServer> servers = new ConcurrentSkipListSet<>(new SingleServerIpComparator());
+    private ConcurrentSkipListMap<Integer, SingleServer> serversID = new ConcurrentSkipListMap<>();
+    private ConcurrentSkipListMap<Short, SingleServer> serversIP = new ConcurrentSkipListMap<>();
+    private ConcurrentSkipListSet<SingleServer> servers = new ConcurrentSkipListSet<>();
 
     @Override
     public void register(short ip, int timeout, IntHolder id) {
         if (! serversIP.containsKey(ip)) {
             id.value = idCount.getAndIncrement();
             SingleServer newServer = new SingleServer(id.value, ip, timeout);
+            servers.add(newServer);
             serversIP.put(ip, newServer);
             serversID.put(id.value, newServer);
-//            servers.add(newServer);
         } else {
             serversIP.get(ip).setTimeout(timeout);
             id.value = serversIP.get(ip).id;
@@ -83,8 +78,8 @@ class OptimizationImpl extends optimizationPOA implements optimizationOperations
 
     @Override
     public void best_range(rangeHolder r) {
-        range bestRange = null, tmpRange = null;
-        for (SingleServer sItem : serversID.values()) {
+        range bestRange = null, tmpRange = null; // ???
+        for (SingleServer sItem : servers) {
             if(sItem.isActive()) {
                 if (tmpRange == null) {
                     tmpRange = new range(sItem.ip, sItem.ip);
@@ -96,7 +91,8 @@ class OptimizationImpl extends optimizationPOA implements optimizationOperations
                     }
                 }
             }
-            if (bestRange == null || tmpRange != null && tmpRange.to - tmpRange.from > bestRange.to - bestRange.from) {
+            if (bestRange == null // ??? || tmpRange != null
+                    && tmpRange.to - tmpRange.from > bestRange.to - bestRange.from) { //???
                 bestRange = tmpRange;
             }
         }
