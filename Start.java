@@ -44,17 +44,21 @@ class OptimizationImpl extends optimizationPOA implements optimizationOperations
         }
     }
 
-
-    AtomicInteger idCount = new AtomicInteger(0); 
-
     private ConcurrentHashMap<Integer, SingleServer> serversID = new ConcurrentHashMap<>();
     private ConcurrentHashMap<Short, SingleServer> serversIP = new ConcurrentHashMap<>();
     private ConcurrentSkipListSet<SingleServer> servers = new ConcurrentSkipListSet<>();
+    int idCount = 0;
+    String synchronizer = "";
+
 
     @Override
     public void register(short ip, int timeout, IntHolder id) {
         if (! serversIP.containsKey(ip)) {
-            id.value = idCount.getAndIncrement();
+            synchronized (synchronizer)
+            {
+                idCount +=1;
+                id.value = idCount;
+            }
             SingleServer newServer = new SingleServer(id.value, ip, timeout);
             servers.add(newServer);
             serversIP.put(ip, newServer);
