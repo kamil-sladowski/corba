@@ -51,8 +51,8 @@ class OptimizationImpl extends optimizationPOA implements optimizationOperations
 
     static AtomicInteger idCount = new AtomicInteger(0); // static??? synchronized???
 
-    private ConcurrentSkipListMap<Integer, SingleServer> serversID = new ConcurrentSkipListMap<>();
-    private ConcurrentSkipListMap<Short, SingleServer> serversIP = new ConcurrentSkipListMap<>();
+    private ConcurrentHashMap<Integer, SingleServer> serversID = new ConcurrentHashMap<>();
+    private ConcurrentHashMap<Short, SingleServer> serversIP = new ConcurrentHashMap<>();
     private ConcurrentSkipListSet<SingleServer> servers = new ConcurrentSkipListSet<>();
 
     @Override
@@ -91,8 +91,7 @@ class OptimizationImpl extends optimizationPOA implements optimizationOperations
                     }
                 }
             }
-            if (bestRange == null // ??? || tmpRange != null
-                    && tmpRange.to - tmpRange.from > bestRange.to - bestRange.from) { //???
+            if (bestRange == null || tmpRange != null && tmpRange.to - tmpRange.from > bestRange.to - bestRange.from) { //???
                 bestRange = tmpRange;
             }
         }
