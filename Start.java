@@ -1,10 +1,6 @@
-import java.util.Collection;
-import java.util.Comparator;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
+
 import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.concurrent.ConcurrentSkipListSet;
-import java.util.concurrent.atomic.AtomicInteger;
 
 import org.omg.CORBA.IntHolder;
 import org.omg.CosNaming.NameComponent;
@@ -15,6 +11,12 @@ import org.omg.PortableServer.POA;
 import com.sun.corba.se.org.omg.CORBA.ORB;
 
 class OptimizationImpl extends optimizationPOA implements optimizationOperations {
+
+    private ConcurrentSkipListMap<Integer, SingleServer> serversID = new ConcurrentSkipListMap<>();
+    private ConcurrentSkipListMap<Short, SingleServer> serversIP = new ConcurrentSkipListMap<>();
+    private ConcurrentSkipListSet<SingleServer> servers = new ConcurrentSkipListSet<>();
+    private int idCount = 0;
+    private final String synchronizer = "";
 
     class SingleServer implements Comparable<SingleServer>{
         private short ip;
@@ -44,12 +46,6 @@ class OptimizationImpl extends optimizationPOA implements optimizationOperations
         }
     }
 
-    private ConcurrentHashMap<Integer, SingleServer> serversID = new ConcurrentHashMap<>();
-    private ConcurrentHashMap<Short, SingleServer> serversIP = new ConcurrentHashMap<>();
-    private ConcurrentSkipListSet<SingleServer> servers = new ConcurrentSkipListSet<>();
-    int idCount = 0;
-    String synchronizer = "";
-
 
     @Override
     public void register(short ip, int timeout, IntHolder id) {
@@ -78,10 +74,10 @@ class OptimizationImpl extends optimizationPOA implements optimizationOperations
 
     @Override
     public void best_range(rangeHolder r) {
-        range bestRange = null; 
+        range finalRange = null;
         range tmpRange = null;
         int tmpSize = 0;
-        int bestSize = 0;
+        int finalSize = 0;
         for (SingleServer sItem : servers) {
             if(sItem.isActive()) {
                 if (tmpRange == null) {
@@ -93,18 +89,18 @@ class OptimizationImpl extends optimizationPOA implements optimizationOperations
                         tmpSize +=1;
                     } else {
                         tmpRange = new range(sItem.ip, sItem.ip);
-                        tmpSize =0;        
+                        tmpSize =0;
                     }
                 }
             }
-            
-            if (tmpSize > bestSize){
-                bestRange = tmpRange;
-                bestSize = tmpSize;
+
+            if (tmpSize > finalSize){
+                finalRange = tmpRange;
+                finalSize = tmpSize;
                 tmpSize = 0;
             }
         }
-        r.value = bestRange;
+        r.value = finalRange;
     }
 }
 
