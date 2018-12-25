@@ -91,7 +91,7 @@ class OptimizationImpl extends optimizationPOA implements optimizationOperations
                     }
                 }
             }
-            if (bestRange == null || tmpRange != null && tmpRange.to - tmpRange.from > bestRange.to - bestRange.from) { //???
+            if (bestRange == null && tmpRange.to - tmpRange.from > bestRange.to - bestRange.from) { //???
                 bestRange = tmpRange;
             }
         }
