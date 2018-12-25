@@ -19,7 +19,7 @@ class OptimizationImpl extends optimizationPOA implements optimizationOperations
     class SingleServer implements Comparable<SingleServer>{
         private short ip;
         private int id;
-        private int timeout;
+        public int timeout;
         private long lastHello;
 
         public SingleServer(int id, short ip, int timeout) {
@@ -29,10 +29,6 @@ class OptimizationImpl extends optimizationPOA implements optimizationOperations
             this.lastHello = System.currentTimeMillis();
         }
 
-
-        public void setTimeout(int timeout) {
-            this.timeout = timeout;
-        }
 
         public boolean isActive() {
             return System.currentTimeMillis() - lastHello < timeout;
@@ -49,7 +45,7 @@ class OptimizationImpl extends optimizationPOA implements optimizationOperations
     }
 
 
-    static AtomicInteger idCount = new AtomicInteger(0); // static??? synchronized???
+    AtomicInteger idCount = new AtomicInteger(0); 
 
     private ConcurrentHashMap<Integer, SingleServer> serversID = new ConcurrentHashMap<>();
     private ConcurrentHashMap<Short, SingleServer> serversIP = new ConcurrentHashMap<>();
@@ -64,7 +60,7 @@ class OptimizationImpl extends optimizationPOA implements optimizationOperations
             serversIP.put(ip, newServer);
             serversID.put(id.value, newServer);
         } else {
-            serversIP.get(ip).setTimeout(timeout);
+            serversIP.get(ip).timeout = timeout;
             id.value = serversIP.get(ip).id;
         }
     }
@@ -78,21 +74,30 @@ class OptimizationImpl extends optimizationPOA implements optimizationOperations
 
     @Override
     public void best_range(rangeHolder r) {
-        range bestRange, tmpRange; // ???
+        range bestRange = null; 
+        range tmpRange = null;
+        int tmpSize = 0;
+        int bestSize = 0;
         for (SingleServer sItem : servers) {
             if(sItem.isActive()) {
                 if (tmpRange == null) {
                     tmpRange = new range(sItem.ip, sItem.ip);
+                    tmpSize =0;
                 } else {
                     if (sItem.ip - 1 == tmpRange.to) {
                         tmpRange.to += 1;
+                        tmpSize +=1;
                     } else {
                         tmpRange = new range(sItem.ip, sItem.ip);
+                        tmpSize =0;        
                     }
                 }
             }
-            if (bestRange == null || tmpRange != null && tmpRange.to - tmpRange.from > bestRange.to - bestRange.from) { //???
+            
+            if (tmpSize > bestSize){
                 bestRange = tmpRange;
+                bestSize = tmpSize;
+                tmpSize = 0;
             }
         }
         r.value = bestRange;
