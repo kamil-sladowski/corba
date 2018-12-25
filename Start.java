@@ -78,7 +78,7 @@ class OptimizationImpl extends optimizationPOA implements optimizationOperations
 
     @Override
     public void best_range(rangeHolder r) {
-        range bestRange = null, tmpRange = null; // ???
+        range bestRange, tmpRange; // ???
         for (SingleServer sItem : servers) {
             if(sItem.isActive()) {
                 if (tmpRange == null) {
